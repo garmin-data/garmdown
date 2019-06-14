@@ -63,8 +63,8 @@ your disk.
 
 # History
 
-This is inspired by [Shannon's original project], which was used to navigate
-the convoluted Garmin client API.
+The activity download module was inspired by [Shannon's original project],
+which was used to navigate the convoluted Garmin client API.
 
 
 ## Usage
