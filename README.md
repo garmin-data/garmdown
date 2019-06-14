@@ -148,8 +148,8 @@ SOFTWARE.
 
 
 <!-- links -->
-[travis-link]: https://travis-ci.org/plandes/garmdown
-[travis-badge]: https://travis-ci.org/plandes/garmdown.svg?branch=master
+[travis-link]: https://travis-ci.org/garmin-data/garmdown
+[travis-badge]: https://travis-ci.org/garmin-data/garmdown.svg?branch=master
 [pypi]: https://pypi.org/project/zensols.garmdown/
 
 [GoldenCheetah]: https://www.goldencheetah.org
