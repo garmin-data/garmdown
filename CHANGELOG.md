@@ -18,6 +18,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Initial version
 
 
-[Unreleased]: https://github.com/plandes/garmdown/compare/v0.0.3...HEAD
-[0.0.3]: https://github.com/plandes/garmdown/compare/v0.0.2...v0.0.3
-[0.0.2]: https://github.com/plandes/garmdown/compare/v0.0.1...v0.0.2
+[Unreleased]: https://github.com/garmin-data/garmdown/compare/v0.0.3...HEAD
+[0.0.3]: https://github.com/garmin-data/garmdown/compare/v0.0.2...v0.0.3
+[0.0.2]: https://github.com/garmin-data/garmdown/compare/v0.0.1...v0.0.2
