@@ -64,7 +64,10 @@ heart_rate_average v02max stress_score calories
 
     @property
     def duration(self):
-        return self.raw['movingDuration']
+        no_move_sports = 'indoor_cycling treadmill_running strength_training'
+        no_move_sports = set(no_move_sports.split())
+        key = 'duration' if self.type in no_move_sports else 'movingDuration'
+        return self.raw[key]
 
     @property
     def move_time_seconds(self):
@@ -101,6 +104,7 @@ heart_rate_average v02max stress_score calories
     def write(self, writer=sys.stdout, detail=True):
         if detail:
             writer.write(f'{self.start_date_str}: {self.name}\n')
+            writer.write(f'type: {self.type}\n')
             for attr in self._attr_names():
                 name = attr.replace('_', ' ')
                 aval = getattr(self, attr)

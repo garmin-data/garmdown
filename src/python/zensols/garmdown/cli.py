@@ -78,8 +78,7 @@ class ReporterCli(object):
 
     @classmethod
     def format_type_string(cls):
-        fopts = '|'.join(cls.FORMAT_TYPES)
-        return f'<{fopts}>'
+        return '|'.join(cls.FORMAT_TYPES)
 
     @property
     def date(self):

@@ -1,7 +1,6 @@
 import logging
 import sys
 import json
-from datetime import datetime
 from zensols.garmdown import (
     Persister
 )
