@@ -5,7 +5,7 @@ import itertools as it
 import httplib2 as hl
 from oauth2client import file, client, tools
 import googleapiclient.discovery as gd
-from zensols.actioncli import persisted
+from zensols.persist import persisted
 from zensols.garmdown import Persister
 
 logger = logging.getLogger(__name__)

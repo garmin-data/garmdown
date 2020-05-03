@@ -4,12 +4,8 @@ import re
 import itertools as it
 import urllib.parse as up
 from robobrowser import RoboBrowser
-from zensols.actioncli import (
-    persisted
-)
-from zensols.garmdown import (
-    ActivityFactory
-)
+from zensols.persist import persisted
+from zensols.garmdown import ActivityFactory
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,5 @@
 import logging
-from zensols.actioncli import ExtendedInterpolationConfig
+from zensols.config import ExtendedInterpolationConfig
 
 logger = logging.getLogger(__name__)
 

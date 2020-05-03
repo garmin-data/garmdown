@@ -2,9 +2,7 @@ import logging
 from pathlib import Path
 from datetime import datetime
 import shutil as su
-from zensols.actioncli import (
-    persisted,
-)
+from zensols.persist import persisted
 from zensols.garmdown import (
     Backup,
     Persister,

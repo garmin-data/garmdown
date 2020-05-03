@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from zensols.actioncli import OneConfPerActionOptionsCliEnv
+from zensols.cli import OneConfPerActionOptionsCliEnv
 from zensols.garmdown import (
     Manager,
     Backuper,

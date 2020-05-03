@@ -1,9 +1,7 @@
 import logging
 import sys
 import json
-from zensols.garmdown import (
-    Persister
-)
+from zensols.garmdown import Persister
 
 logger = logging.getLogger(__name__)
 

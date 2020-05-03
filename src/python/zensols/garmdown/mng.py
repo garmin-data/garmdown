@@ -2,7 +2,7 @@ import logging
 import sys
 from pathlib import Path
 import shutil
-from zensols.actioncli import (
+from zensols.persist import (
     PersistedWork,
     persisted
 )

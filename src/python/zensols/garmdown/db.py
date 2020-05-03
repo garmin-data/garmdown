@@ -4,8 +4,9 @@ from pathlib import Path
 from datetime import datetime
 import json
 import sqlite3
-from zensols.actioncli import (
-    persisted, resource
+from zensols.persist import (
+    persisted,
+    resource
 )
 from zensols.garmdown import (
     ActivityFactory,
