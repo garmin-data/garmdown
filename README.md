@@ -1,6 +1,9 @@
 # Download Garmin Connect Data
 
 [![Travis CI Build Status][travis-badge]][travis-link]
+[![PyPI][pypi-badge]][pypi-link]
+[![Python 3.7][python37-badge]][python37-link]
+
 
 This software downloads TCX files and accompanying activity metadata files from
 the Garmin Connect website.  Since Garmin has discontinued its API to download
@@ -151,6 +154,10 @@ SOFTWARE.
 [travis-link]: https://travis-ci.org/garmin-data/garmdown
 [travis-badge]: https://travis-ci.org/garmin-data/garmdown.svg?branch=master
 [pypi]: https://pypi.org/project/zensols.garmdown/
+[pypi-link]: https://pypi.python.org/pypi/zensols.gramdown
+[pypi-badge]: https://img.shields.io/pypi/v/zensols.gramdown.svg
+[python37-badge]: https://img.shields.io/badge/python-3.7-blue.svg
+[python37-link]: https://www.python.org/downloads/release/python-370
 
 [GoldenCheetah]: https://www.goldencheetah.org
 [Shannon's original project]: https://github.com/magsol/garmin
