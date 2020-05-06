@@ -154,8 +154,8 @@ SOFTWARE.
 [travis-link]: https://travis-ci.org/garmin-data/garmdown
 [travis-badge]: https://travis-ci.org/garmin-data/garmdown.svg?branch=master
 [pypi]: https://pypi.org/project/zensols.garmdown/
-[pypi-link]: https://pypi.python.org/pypi/zensols.gramdown
-[pypi-badge]: https://img.shields.io/pypi/v/zensols.gramdown.svg
+[pypi-link]: https://pypi.python.org/pypi/zensols.garmdown
+[pypi-badge]: https://img.shields.io/pypi/v/zensols.garmdown.svg
 [python37-badge]: https://img.shields.io/badge/python-3.7-blue.svg
 [python37-link]: https://www.python.org/downloads/release/python-370
 
