@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 
+## [0.0.7] - 2020-08-05
+### Changed
+- Updated dependencies
+
+
 ## [0.0.6] - 2020-05-05
 ### Changed
 - Updated Garmin [activity
@@ -40,7 +45,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Initial version
 
 
-[Unreleased]: https://github.com/garmin-data/garmdown/compare/v0.0.6...HEAD
+[Unreleased]: https://github.com/garmin-data/garmdown/compare/v0.0.7...HEAD
+[0.0.7]: https://github.com/garmin-data/garmdown/compare/v0.0.6...v0.0.7
 [0.0.6]: https://github.com/garmin-data/garmdown/compare/v0.0.5...v0.0.6
 [0.0.5]: https://github.com/garmin-data/garmdown/compare/v0.0.4...v0.0.5
 [0.0.4]: https://github.com/garmin-data/garmdown/compare/v0.0.3...v0.0.4
