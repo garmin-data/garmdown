@@ -19,6 +19,9 @@ class InfoCli(object):
     def environment(self):
         self.mng.environment()
 
+    def fetch_config(self):
+        self.mng.config.fetch_config.write()
+
     def write_not_downloaded(self):
         self.mng.write_not_downloaded(self.detail, self.limit)
 
@@ -126,6 +129,10 @@ class ConfAppCommandLine(OneConfPerActionOptionsCliEnv):
                  'actions': [{'name': 'env',
                               'meth': 'environment',
                               'doc': 'print environment',
+                              'opts': [detail_op]},
+                             {'name': 'fetchconf',
+                              'meth': 'fetch_config',
+                              'doc': 'print fetch configuration',
                               'opts': [detail_op]},
                              {'name': 'notdown',
                               'meth': 'write_not_downloaded',
