@@ -1,4 +1,5 @@
 zensols.util>=1.2.5
+Werkzeug==0.16.0
 robobrowser==0.5.3
 oauth2client>=4.1.3
 httplib2>=0.12.0
