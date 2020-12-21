@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 
+## [0.0.8] - 2020-12-21
+### Changed
+- Fixed `cannot import name 'cached_property' from 'werkzeug'` error.
+- Switch from Travis to GitHub workflows.
+
+
 ## [0.0.7] - 2020-08-05
 ### Changed
 - Updated dependencies
@@ -45,7 +51,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Initial version
 
 
-[Unreleased]: https://github.com/garmin-data/garmdown/compare/v0.0.7...HEAD
+[Unreleased]: https://github.com/garmin-data/garmdown/compare/v0.0.8...HEAD
+[0.0.8]: https://github.com/garmin-data/garmdown/compare/v0.0.7...v0.0.8
 [0.0.7]: https://github.com/garmin-data/garmdown/compare/v0.0.6...v0.0.7
 [0.0.6]: https://github.com/garmin-data/garmdown/compare/v0.0.5...v0.0.6
 [0.0.5]: https://github.com/garmin-data/garmdown/compare/v0.0.4...v0.0.5
