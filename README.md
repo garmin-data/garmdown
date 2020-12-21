@@ -159,8 +159,8 @@ SOFTWARE.
 [python38-badge]: https://img.shields.io/badge/python-3.8-blue.svg
 [python37-link]: https://www.python.org/downloads/release/python-370
 [python38-link]: https://www.python.org/downloads/release/python-380
-[build-badge]: https://github.com/plandes/garmdown/workflows/CI/badge.svg
-[build-link]: https://github.com/plandes/garmdown/actions
+[build-badge]: https://github.com/garmin-data/garmdown/workflows/CI/badge.svg
+[build-link]: https://github.com/garmin-data/garmdown/actions
 
 [GoldenCheetah]: https://www.goldencheetah.org
 [Shannon's original project]: https://github.com/magsol/garmin
