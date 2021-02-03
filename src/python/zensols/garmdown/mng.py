@@ -122,7 +122,7 @@ class Manager(object):
             import_path = Path(import_dir, fname)
             if import_path.exists():
                 logger.warning(f'activity {act.id} is imported ' +
-                               f'but not marked--marking now')
+                               'but not marked--marking now')
             else:
                 logger.info(f'copying {dl_path} -> {import_path}')
                 shutil.copy(dl_path, import_path)
@@ -138,6 +138,19 @@ class Manager(object):
         self.sync_activities(limit)
         self.sync_tcx(limit)
         self.import_tcx()
+
+    def clean_imported(self, limit=None):
+        """Delete all TCX files from the import directory.  This is useful so that
+        programs like GoldenCheetah that imports them don't have to re-import
+        them each time.
+
+        """
+        import_dir = self.config.import_dir
+        logger.info(f'removing import files from {import_dir}')
+        if import_dir.exists():
+            for path in import_dir.iterdir():
+                logger.info(f'removing {path}')
+                path.unlink()
 
     def write_not_downloaded(self, detail=False, limit=None,
                              writer=sys.stdout):

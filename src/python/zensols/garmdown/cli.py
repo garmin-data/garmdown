@@ -49,6 +49,9 @@ class DownloadCli(object):
         backuper = Backuper(self.config)
         backuper.backup()
 
+    def clean_imported(self):
+        self.mng.clean_imported()
+
 
 class SheetCli(object):
     def __init__(self, config):
@@ -156,6 +159,10 @@ class ConfAppCommandLine(OneConfPerActionOptionsCliEnv):
                               'meth': 'import_tcx',
                               'doc': 'import TCX file',
                               'opts': [limit_op]},
+                             {'name': 'clean',
+                              'meth': 'clean_imported',
+                              'doc': 'remove all TCX files from the imported directory',
+                              'opts': []},
                              {'name': 'download',
                               'doc': 'download all outstanding data',
                               'opts': [limit_op]}]},
@@ -186,7 +193,7 @@ class ConfAppCommandLine(OneConfPerActionOptionsCliEnv):
                                          {'dest': 'config',
                                           'metavar': 'FILE',
                                           'help': 'configuration file'}]},
-               'whine': 0}
+               'whine': 1}
         super(ConfAppCommandLine, self).__init__(
             cnf, config_env_name='garmdownrc', pkg_dist='zensols.garmdown',
             config_type=AppConfig, default_action='sync')
