@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 
+### Added
+- Feature to clean up (remove) the TCX import files downloaded for local import
+  (i.e with programs like GoldenCheetah).
+
+
 ## [0.0.8] - 2020-12-21
 ### Changed
 - Fixed `cannot import name 'cached_property' from 'werkzeug'` error.
