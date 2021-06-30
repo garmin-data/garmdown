@@ -5,7 +5,8 @@ import itertools as it
 import urllib.parse as up
 from robobrowser import RoboBrowser
 from zensols.persist import persisted
-from zensols.garmdown import ActivityFactory
+from . import ActivityFactory
+from . import GarminAPI
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,7 @@ class Fetcher(object):
         import requests
         start = requests.session()
         start.headers = {'origin': 'https://sso.garmin.com'}
+        self._request_session = start
         return RoboBrowser(
             history=True, parser='lxml', user_agent=self.web.agent, session=start)
 
@@ -44,6 +46,7 @@ class Fetcher(object):
     @persisted('_hostname_url', cache_global=True)
     def hostname_url(self):
         "The API host name."
+        logger.debug(f'opening {self.web.gauth}')
         self.browser.open(self.web.gauth)
         return json.loads(self.browser.parsed.html.body.p.text)['host']
 
@@ -62,36 +65,54 @@ class Fetcher(object):
         """Return the data needed to log in to the garmin connect site.
 
         """
-        wconf = self.web
-        # Package the full login GET request...
-        data = {'service': wconf.redirect,
-                'webhost': self.hostname_url,
-                'source': wconf.base_url,
-                'redirectAfterAccountLoginUrl': wconf.redirect,
-                'redirectAfterAccountCreationUrl': wconf.redirect,
-                'gauthHost': wconf.sso,
-                'locale': 'en_US',
-                'id': 'gauth-widget',
-                'cssUrl': wconf.css,
-                'clientId': 'GarminConnect',
-                'rememberMeShown': 'true',
-                'rememberMeChecked': 'false',
-                'createAccountShown': 'true',
-                'openCreateAccount': 'false',
-                'usernameShown': 'false',
-                'displayNameShown': 'false',
-                'consumeServiceTicket': 'false',
-                'initialFocus': 'true',
-                'embedWidget': 'false',
-                'generateExtraServiceTicket': 'false'}
-        return data
+        params = [
+             ('service', 'https://connect.garmin.com/modern/'),
+             ('webhost', 'https://connect.garmin.com/modern/'),
+             ('source', 'https://connect.garmin.com/signin/'),
+             ('redirectAfterAccountLoginUrl', 'https://connect.garmin.com/modern/'),  # noqa
+             ('redirectAfterAccountCreationUrl', 'https://connect.garmin.com/modern/'),  # noqa
+             ('gauthHost', self.hostname_url),
+             ('locale', 'fr_FR'),
+             ('id', 'gauth-widget'),
+             ('cssUrl', 'https://connect.garmin.com/gauth-custom-v3.2-min.css'),
+             ('privacyStatementUrl', 'https://www.garmin.com/fr-FR/privacy/connect/'),  # noqa
+             ('clientId', 'GarminConnect'),
+             ('rememberMeShown', 'true'),
+             ('rememberMeChecked', 'false'),
+             ('createAccountShown', 'true'),
+             ('openCreateAccount', 'false'),
+             ('displayNameShown', 'false'),
+             ('consumeServiceTicket', 'false'),
+             ('initialFocus', 'true'),
+             ('embedWidget', 'false'),
+             ('generateExtraServiceTicket', 'true'),
+             ('generateTwoExtraServiceTickets', 'true'),
+             ('generateNoServiceTicket', 'false'),
+             ('globalOptInShown', 'true'),
+             ('globalOptInChecked', 'false'),
+             ('mobile', 'false'),
+             ('connectLegalTerms', 'true'),
+             ('showTermsOfUse', 'false'),
+             ('showPrivacyPolicy', 'false'),
+             ('showConnectLegalAge', 'false'),
+             ('locationPromptShown', 'true'),
+             ('showPassword', 'true'),
+             ('useCustomHeader', 'false'),
+             ('mfaRequired', 'false'),
+             ('performMFACheck', 'false'),
+             ('rememberMyBrowserShown', 'false'),
+             ('rememberMyBrowserChecked', 'false'),
+         ]
+        return params
 
     def _get_last_login_state(self):
         """Return ``success`` if the login connection was successful, ``failed`` if
         failed or ``unknown`` if it returned a response we don't understand.
 
         """
-        decoded = self.browser.parsed.decode()
+        parsed = self.browser.parsed
+        logger.debug(f'decoded login state: <{parsed}>')
+        decoded = parsed.decode()
         if decoded.find('SUCCESS') > 0:
             state = 'success'
         elif decoded.find('Invalid') > 0:
@@ -101,13 +122,16 @@ class Fetcher(object):
             state = 'unknown'
         return state
 
-    def _login(self):
+    def _login_dis(self):
         """Login in the garmin connect site with athlete credentials.
         """
         login = self.config.populate(section='login')
         url = self.web.login_url + up.urlencode(self.login_request_data)
         logger.info('logging in...')
         logger.debug(f'login url: {url}')
+        if 0:
+            import sys
+            sys.exit(0)
         self.browser.open(url)
         form = self.browser.get_form(self.web.login_form)
         form['username'] = login.username
@@ -115,11 +139,20 @@ class Fetcher(object):
         logger.debug(f'submitting form: {form}')
         self.browser.submit_form(form)
         state = self._get_last_login_state()
+        logger.debug(f'state: {state}')
         if state == 'failed':
             raise ValueError('login failed')
         elif state == 'unknown':
             raise ValueError('login status unknown')
         self.login_state = state
+
+    def _login(self):
+        login = self.config.populate(section='login')
+        api = GarminAPI()
+        print(login)
+        session = api.authenticate(login.username, login.password)
+        print(session)
+        raise ValueError('bail')
 
     def _assert_logged_in(self):
         """Log in if we're not and raise an error if we can't.

@@ -17,6 +17,7 @@ def configure_from_entry_point(entry_path: Path) -> Path:
 def main(conf_path: Path, args: List[str]):
     from zensols.garmdown import ConfAppCommandLine, AppConfig
     AppConfig.DEFAULT_APP_ROOT = str(conf_path.parent.parent)
+    args += ['-w', '2']
     ConfAppCommandLine().invoke(args)
 
 
