@@ -7,6 +7,7 @@ from robobrowser import RoboBrowser
 from zensols.persist import persisted
 from . import ActivityFactory
 from . import GarminAPI
+from garminexport.garminclient import GarminClient
 
 logger = logging.getLogger(__name__)
 
@@ -39,8 +40,10 @@ class Fetcher(object):
         start = requests.session()
         start.headers = {'origin': 'https://sso.garmin.com'}
         self._request_session = start
+        # return RoboBrowser(
+        #     history=True, parser='lxml', user_agent=self.web.agent, session=start)
         return RoboBrowser(
-            history=True, parser='lxml', user_agent=self.web.agent, session=start)
+            history=True, parser='lxml', user_agent=self.web.agent, session=self.session)
 
     @property
     @persisted('_hostname_url', cache_global=True)
@@ -152,6 +155,27 @@ class Fetcher(object):
         print(login)
         session = api.authenticate(login.username, login.password)
         print('SESSION', session)
+        raise ValueError('bail')
+
+    def _login(self):
+        login = self.config.populate(section='login')
+        logger.info(f'logging in with {login.username}')
+        client = GarminClient(login.username, login.password)
+        client.connect()
+        self.session = client.session
+        self.login_state = 'success'
+
+    def _loginx(self):
+        login = self.config.populate(section='login')
+        print(login)
+        with GarminClient(login.username, login.password) as client:
+            ids = client.list_activities()
+            for activity_id in ids:
+                if 1:
+                    print(activity_id)
+                else:
+                    gpx = client.get_activity_gpx(activity_id)
+                    print(gpx)
         raise ValueError('bail')
 
     def _assert_logged_in(self):
