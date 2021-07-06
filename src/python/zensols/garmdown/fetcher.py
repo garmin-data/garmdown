@@ -34,32 +34,11 @@ class Fetcher(object):
     @persisted('_browser', cache_global=True)
     def browser(self):
         "The ``RoboBrowser`` instance."
-        #import requests
-        #start = requests.session()
-        #start.headers = {'origin': 'https://sso.garmin.com'}
-        #self._request_session = start
         logger.debug('creating browser...')
         return RoboBrowser(
             history=True, parser='lxml',
             user_agent=self.web.agent,
             session=self.session)
-
-    def _get_last_login_state(self):
-        """Return ``success`` if the login connection was successful, ``failed`` if
-        failed or ``unknown`` if it returned a response we don't understand.
-
-        """
-        parsed = self.browser.parsed
-        logger.debug(f'decoded login state: <{parsed}>')
-        decoded = parsed.decode()
-        if decoded.find('SUCCESS') > 0:
-            state = 'success'
-        elif decoded.find('Invalid') > 0:
-            state = 'failed'
-        else:
-            logger.warning(f'unknown login state: {decoded}')
-            state = 'unknown'
-        return state
 
     def _login(self):
         login = self.config.populate(section='login')
