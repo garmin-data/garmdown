@@ -151,7 +151,7 @@ class Fetcher(object):
         api = GarminAPI()
         print(login)
         session = api.authenticate(login.username, login.password)
-        print(session)
+        print('SESSION', session)
         raise ValueError('bail')
 
     def _assert_logged_in(self):

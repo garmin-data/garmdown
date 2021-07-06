@@ -141,6 +141,9 @@ class GarminAPI:
         if not res.ok:
             if res.status_code == 429:
                 raise Exception('Authentication failed due to too many requests (429). Retry later...')  # noqa
+            logger.info(f'Response: {res.status_code}, content: <{len(res.content)}>')
+            # with open('/d/a.dat', 'wb') as f:
+            #     f.write(res.content)
             raise Exception('Authentification failed.')
 
         # Check we have sso guid in cookies
