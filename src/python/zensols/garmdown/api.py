@@ -1,6 +1,6 @@
 """Taken from `garminexport <https://github.com/petergardfjall/garminexport>_`.
 """
-__author__ = 'petergardfjall'
+__author__ = 'Peter Gardfjall'
 
 import requests
 
