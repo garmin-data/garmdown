@@ -24,3 +24,10 @@ def main(conf_path: Path, args: List[str]):
 if __name__ == '__main__':
     conf_path, args = configure_from_entry_point(Path(sys.argv[0]))
     main(conf_path, args)
+
+
+conf_path, args = configure_from_entry_point(Path('./garmdown'))
+try:
+    main(conf_path, 'download'.split())
+except SystemExit:
+    pass
