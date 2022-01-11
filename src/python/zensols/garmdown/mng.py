@@ -1,3 +1,8 @@
+"""Classes to manage downloading and DB access.
+
+"""
+__author__ = 'Paul Landes'
+
 from dataclasses import dataclass, field
 import logging
 import sys
@@ -58,7 +63,7 @@ class Manager(object):
                       defaults to all
 
         """
-        dl_dir = self.config.activities_dir
+        dl_dir = self.activities_dir
         persister = self.persister
         if not dl_dir.exists():
             logger.info(f'creating download directory {dl_dir}')
@@ -91,8 +96,8 @@ class Manager(object):
 
         """
         persister = self.persister
-        dl_dir = self.config.activities_dir
-        import_dir = self.config.import_dir
+        dl_dir = self.activities_dir
+        import_dir = self.import_dir
         if not import_dir.exists():
             logger.info(f'creating imported directory {import_dir}')
             import_dir.mkdir(parents=True)
@@ -127,10 +132,9 @@ class Manager(object):
         them each time.
 
         """
-        import_dir = self.config.import_dir
-        logger.info(f'removing import files from {import_dir}')
-        if import_dir.exists():
-            for path in import_dir.iterdir():
+        logger.info(f'removing import files from {self.import_dir}')
+        if self.import_dir.exists():
+            for path in self.import_dir.iterdir():
                 logger.info(f'removing {path}')
                 path.unlink()
 
@@ -149,7 +153,9 @@ class Manager(object):
         for act in self.persister.get_missing_downloaded(limit):
             act.write(writer, detail=detail)
 
-    def write_not_imported(self, detail=False, limit=None, writer=sys.stdout):
+    def write_not_imported(self, detail: bool = False,
+                           limit: int = None,
+                           writer: TextIOBase = sys.stdout):
         """Write human readable formatted data of all activities not yet imported.
 
         :param detail: whether or to give full information about the activity

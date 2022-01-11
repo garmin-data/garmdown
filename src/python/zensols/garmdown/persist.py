@@ -67,7 +67,7 @@ class Persister(object):
 
     def _dispose_connection(self, conn):
         """Close the connection to the database."""
-        logger.debug(f'closing connection {conn}')
+        logger.debug(f'closing connection {conn} at {self.db_file}')
         conn.close()
 
     def _activity_exists(self, conn, act):
