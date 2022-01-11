@@ -1,6 +1,6 @@
 from .domain import *
 from .fetcher import *
-from .db import *
+from .persist import Persister
 from .sheets import *
 from .backup import *
 from .reporter import *

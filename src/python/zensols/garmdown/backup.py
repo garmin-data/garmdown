@@ -1,49 +1,38 @@
+"""Creates backups of the SQLite where activities are stored.
+
+"""
+__author__ = 'Paul Landes'
+
+from dataclasses import dataclass, field
 import logging
 from pathlib import Path
 from datetime import datetime
 import shutil as su
-from zensols.persist import persisted
-from zensols.garmdown import (
-    Backup,
-    Persister,
-)
+from zensols.garmdown import Backup, Persister
 
 logger = logging.getLogger(__name__)
 
 
+@dataclass
 class Backuper(object):
     """Backup the SQLite database on a periodic basis.
 
     """
-    def __init__(self, config):
-        """Initialize.
+    persister: Persister = field()
+    """Use to access backup tracking data."""
 
-        :param config: the application configuration
-        """
-        self.config = config
-        self.backup_params = self.config.populate(section='backup')
+    db_backup_dir: Path = field()
+    """The directory to make SQLite file backups of the database."""
 
-    @property
-    @persisted('_persister')
-    def persister(self):
-        return Persister(self.config)
-
-    @property
-    @persisted('__backup_dir', cache_global=False)
-    def _backup_dir(self):
-        """Return the directory to where we back up."""
-        backup_dir = self.config.db_backup_dir
-        if not backup_dir.exists():
-            logger.info(f'creating backup directory {backup_dir}')
-            backup_dir.mkdir(parents=True)
-        return backup_dir
+    days: int = field()
+    """Number of days between backups of the activities SQLite database."""
 
     def _execute(self):
         """Execute the backup of the SQLite database."""
         persister = self.persister
-        backup_dir = self._backup_dir
+        self.backup_dir.mkdir(parents=True, exists_ok=True)
         src = persister.db_file
-        dst = Path(backup_dir, f'{src.name}-{Backup.timestr_from_datetime()}')
+        dst = self.backup_dir / f'{src.name}-{Backup.timestr_from_datetime()}'
         backup = Backup(dst)
         logger.info(f'backing up database {src} -> {dst}')
         su.copy(src, dst)
@@ -68,8 +57,8 @@ class Backuper(object):
                 diff = datetime.now() - backup.time
                 diff_days = diff.days
                 logger.info(f'days since last backup: {diff_days} and we ' +
-                            f'backup every {self.backup_params.days} days')
-                do_backup = diff_days >= self.backup_params.days
+                            f'backup every {self.days} days')
+                do_backup = diff_days >= self.days
         logger.debug(f'backing up: {do_backup}')
         if do_backup:
             self._execute()

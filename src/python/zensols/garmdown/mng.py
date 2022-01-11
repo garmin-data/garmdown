@@ -1,11 +1,10 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import logging
 import sys
+from io import TextIOBase
 from pathlib import Path
 import shutil
-from zensols.persist import PersistedWork, persisted
-from zensols.config import Configurable
-from zensols.garmdown import Backuper, Persister, Fetcher
+from zensols.garmdown import Activity, Backuper, Persister, Fetcher
 
 logger = logging.getLogger(__name__)
 
@@ -17,44 +16,29 @@ class Manager(object):
     database.
 
     """
-    #config: Configurable
+    fetcher: Fetcher = field()
+    """Fetches activities and downloads TCX files from Garmin."""
 
-    def __init__(self, config):
-        """Initialize
+    persister: Persister = field()
+    """Use to access backup tracking data."""
 
-        :param config: the application configuration
-        """
-        self.config = config
-        self.download = config.download
-        self._fetcher = PersistedWork('_fetcher', self, True)
+    backuper: Backuper = field()
+    """Creates backups of the SQLite where activities are stored."""
 
-    @property
-    @persisted('_fetcher')
-    def fetcher(self):
-        return Fetcher(self.config)
+    activities_dir: Path = field()
+    """Location of activities (TCX) files"""
 
-    @property
-    @persisted('_persister')
-    def persister(self):
-        return Persister(self.config)
+    import_dir: Path = field()
+    """Where to copy to-be-imported files."""
 
-    @property
-    @persisted('_backuper')
-    def backuper(self):
-        return Backuper(self.config, self.persister)
-
-    def environment(self, writer=sys.stdout):
-        writer.write(f'database={self.config.db_file}\n')
-        writer.write(f'activities={self.config.activities_dir}\n')
-        writer.write(f'backup={self.config.db_backup_dir}\n')
-
-    def sync_activities(self, limit=None, start_index=0):
+    def sync_activities(self, limit: int = None, start_index: int = 0):
         """Download and add activities to the SQLite database.  Note that this does not
         download the TCX files.
 
         :param limit: the number of activities to download
+
         :param start_index: the 0 based activity index (not contiguous page
-            based)
+                            based)
 
         """
         # acts will be an iterable
@@ -66,12 +50,12 @@ class Manager(object):
         """Format a (non-directory) file name for ``activity``."""
         return f'{activity.start_date_str}_{activity.id}.tcx'
 
-    def sync_tcx(self, limit=None):
+    def sync_tcx(self, limit: int = None):
         """Download TCX files and record each succesful download as such in the
         database.
 
         :param limit: the maximum number of TCX files to download, which
-            defaults to all
+                      defaults to all
 
         """
         dl_dir = self.config.activities_dir
@@ -85,7 +69,7 @@ class Manager(object):
             dl_path = Path(dl_dir, self._tcx_filename(act))
             if dl_path.exists():
                 logger.warning(f'activity {act.id} is downloaded ' +
-                               f'but not marked--marking now')
+                               'but not marked--marking now')
             else:
                 logger.debug(f'downloading {dl_path}')
                 with open(dl_path, 'wb') as f:
@@ -98,7 +82,7 @@ class Manager(object):
                     raise ValueError(m)
             persister.mark_downloaded(act)
 
-    def import_tcx(self, limit=None):
+    def import_tcx(self, limit: int = None):
         """Download TCX files and record each succesful download as such in the
         database.
 
@@ -150,15 +134,18 @@ class Manager(object):
                 logger.info(f'removing {path}')
                 path.unlink()
 
-    def write_not_downloaded(self, detail=False, limit=None,
-                             writer=sys.stdout):
+    def write_not_downloaded(self, detail: bool = False, limit: int = None,
+                             writer: TextIOBase = sys.stdout):
         """Write human readable formatted data of all activities not yet downloaded.
 
         :param detail: whether or to give full information about the activity
+
         :param limit: the number of activities to report on
+
         :param writer: the stream to output, which defaults to stdout
 
         """
+        act: Activity
         for act in self.persister.get_missing_downloaded(limit):
             act.write(writer, detail=detail)
 
@@ -170,10 +157,6 @@ class Manager(object):
         :param writer: the stream to output, which defaults to stdout
 
         """
+        act: Activity
         for act in self.persister.get_missing_imported(limit):
             act.write(writer, detail=detail)
-
-    def close(self):
-        """Close all allocated resources byt by the manager."""
-        self.fetcher.close()
-        self._fetcher.clear()

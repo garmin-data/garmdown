@@ -1,7 +1,13 @@
+"""Basic activity domain classes and factories.
+
+"""
+__author__ = 'Paul Landes'
+
 from typing import Dict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import sys
 import itertools as it
+from pathlib import Path
 from datetime import datetime
 from zensols.util import APIError
 
@@ -109,7 +115,7 @@ heart_rate_average v02max stress_score calories
         from pprint import pprint
         pprint(self.raw, stream=writer)
 
-    def write(self, writer=sys.stdout, detail=True):
+    def write(self, writer=sys.stdout, detail: bool = True):
         if detail:
             writer.write(f'{self.start_date_str}: {self.name}\n')
             writer.write(f'type: {self.type}\n')
@@ -204,15 +210,11 @@ class ActivityFactory(object):
     char_to_name: Dict[str, str]
 
     def __post_init__(self):
-        # self.type_to_char = config.fetch_config.get_options(
-        #     section='activity_type')
-        # self.char_to_name = config.fetch_config.get_options(
-        #     section='activity_name')
         self.type_to_char = self.type_to_char.asdict()
         self.char_to_name = self.char_to_name.asdict()
         self.char_to_type = {v: k for k, v in self.type_to_char.items()}
 
-    def create(self, raw):
+    def create(self, raw) -> Activity:
         atype = Activity.type_from_raw(raw)
         type_char = self.type_to_char[atype]
         clsname = atype.capitalize() + 'Activity'
@@ -224,13 +226,10 @@ class ActivityFactory(object):
         return act
 
 
+@dataclass
 class Backup(object):
-    def __init__(self, path, time=None):
-        self.path = path
-        if time is None:
-            self.time = datetime.now()
-        else:
-            self.time = time
+    path: Path
+    time: datetime = field(default_factory=lambda: datetime.now())
 
     @property
     def datestr(self):

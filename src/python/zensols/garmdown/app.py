@@ -6,7 +6,7 @@ __author__ = '${user-name}'
 from dataclasses import dataclass, field
 import logging
 #from pathlib import Path
-from . import Manager, Fetcher
+from . import Manager
 
 logger = logging.getLogger(__name__)
 
@@ -16,10 +16,7 @@ class InfoApplication(object):
     """Download Garmin connect data application.
 
     """
-    #manager: Manager = field()
-    fetcher: Fetcher
+    manager: Manager = field()
 
     def proto(self):
-        #print(self.fetcher)
-        for act in self.fetcher.get_activities():
-            print(act)
+        self.manager.write_not_imported()

@@ -1,17 +1,19 @@
+"""Persists activities to a SQLite file.
+
+"""
+__author__ = 'Paul Landes'
+
+from typing import Tuple
+from dataclasses import dataclass, field
 import logging
 import sys
 from pathlib import Path
 from datetime import datetime
 import json
 import sqlite3
-from zensols.persist import (
-    persisted,
-    resource
-)
-from zensols.garmdown import (
-    ActivityFactory,
-    Backup,
-)
+from zensols.config import Settings
+from zensols.persist import resource
+from . import Activity, ActivityFactory, Backup
 
 logger = logging.getLogger(__name__)
 
@@ -22,26 +24,22 @@ class connection(resource):
             '_create_connection', '_dispose_connection')
 
 
+@dataclass
 class Persister(object):
     """CRUDs activities in the SQLite database.
 
     """
-    def __init__(self, config):
-        """Initialize
+    activity_factory: ActivityFactory = field()
+    """Create activity instances."""
 
-        :param config: the application configuration
-        """
-        self.config = config
-        self.sql = config.sql
+    db_file: Path = field()
+    """The file to the SQL file."""
 
-    @property
-    @persisted('_activity_factory')
-    def activity_factory(self):
-        return ActivityFactory(self.config)
+    tcx_chunk_size: int = field()
+    """Default number TCX files to download."""
 
-    @property
-    def db_file(self):
-        return self.config.db_file
+    sql: Settings = field()
+    """SQL queries."""
 
     def _create_connection(self):
         """Create a connection to the SQLite database (file).
@@ -59,8 +57,8 @@ class Persister(object):
         types = sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
         conn = sqlite3.connect(str(db_file.absolute()), detect_types=types)
         if created:
-            logger.info(f'initializing database...')
-            for sql_key in self.config.db.init_sql:
+            logger.info('initializing database...')
+            for sql_key in self.sql.init_sql:
                 sql = getattr(self.sql, sql_key)
                 logger.debug(f'invoking sql: {sql}')
                 conn.execute(sql)
@@ -105,7 +103,7 @@ class Persister(object):
                 conn.execute(self.sql.insert_act, row)
         conn.commit()
 
-    def _thaw_activity(self, conn, sql, *params):
+    def _thaw_activity(self, conn, sql, *params) -> Activity:
         """Unpersist activities from the database.
 
         :param conn: the database connection
@@ -136,7 +134,7 @@ class Persister(object):
         return rc
 
     @connection()
-    def get_missing_downloaded(self, conn, limit=None):
+    def get_missing_downloaded(self, conn, limit=None) -> Tuple[Activity]:
         """Return activities that have not yet been downloaded.
 
         :param conn: the database connection (not provided on by the client of
@@ -147,7 +145,7 @@ class Persister(object):
 
         """
         if limit is None:
-            limit = self.config.fetch.tcx_chunk_size
+            limit = self.tcx_chunk_size
         return tuple(self._thaw_activity(
             conn, self.sql.missing_downloads, limit))
 
@@ -165,7 +163,7 @@ class Persister(object):
         self._mark_state(conn, update_sql, 'downloaded', activity)
 
     @connection()
-    def get_missing_imported(self, conn, limit=None):
+    def get_missing_imported(self, conn, limit: int = None) -> Tuple[Activity]:
         """Return activities that have not yet been imported.
 
         :param conn: the database connection (not provided on by the client of
@@ -200,19 +198,19 @@ class Persister(object):
         conn.execute(self.sql.insert_back, row)
         conn.commit()
 
-    def _thaw_backup(self, conn, sql):
+    def _thaw_backup(self, conn, sql) -> Backup:
         for row in conn.execute(sql):
             time, filename = row
             yield Backup(Path(filename), time)
 
     @connection()
-    def get_last_backup(self, conn):
+    def get_last_backup(self, conn) -> Backup:
         backups = tuple(self._thaw_backup(conn, self.sql.last_back))
         if len(backups) > 0:
             return backups[0]
 
     @connection()
-    def get_activities_by_date(self, conn, datetime):
+    def get_activities_by_date(self, conn, datetime) -> Tuple[Activity]:
         datestr = datetime.strftime('%Y-%m-%d')
         return tuple(self._thaw_activity(
             conn, self.sql.activity_by_date, datestr))
