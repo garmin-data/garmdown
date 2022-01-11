@@ -4,10 +4,18 @@
 __author__ = '${user-name}'
 
 from dataclasses import dataclass, field
+from enum import Enum, auto
 import logging
-from . import Manager, Backuper
+from datetime import datetime
+from . import Manager, Backuper, Reporter
 
 logger = logging.getLogger(__name__)
+
+
+class ReportType(Enum):
+    detail = auto()
+    summary = auto()
+    json = auto()
 
 
 @dataclass
@@ -66,3 +74,43 @@ class DownloadApplication(object):
     def clean_imported(self):
         """Remove all TCX files from the imported directory."""
         self.mng.clean_imported()
+
+
+@dataclass
+class BackupApplication(object):
+    """Backup operations.
+
+    """
+    CLI_META = {'option_excludes': set('backuper'.split())}
+
+    backuper: Backuper = field()
+    """Creates backups of the SQLite where activities are stored."""
+
+    def backup(self):
+        self.backer.backup(True)
+
+
+@dataclass
+class ReporterApplication(object):
+    """Report activities of a day.
+
+    """
+    CLI_META = {'option_excludes': set('reporter'.split())}
+
+    reporter: Reporter = field()
+    """Report activities of a day."""
+
+    format: ReportType = field(default='summary')
+    """The format to output."""
+
+    date: str = field(default=None)
+    """The date to report on, which defaults to today (%Y-%m-%d)."""
+
+    def report(self):
+        """Report activities for a day."""
+        if self.date is None:
+            date = datetime.now()
+        else:
+            date = datetime.strptime(self.date, '%Y-%m-%d')
+        fmt = self.format.name
+        getattr(self.reporter, f'write_{fmt}')(date)

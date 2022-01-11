@@ -1,32 +1,31 @@
+"""Report activities of a day.
+
+"""
+__author__ = 'Paul Landes'
+
+from dataclasses import dataclass, field
 import logging
 import sys
+from io import TextIOBase
 import json
 from zensols.garmdown import Persister
 
 logger = logging.getLogger(__name__)
 
 
+@dataclass
 class Reporter(object):
-    """Report that activities of a day.
+    """Report activities of a day.
+
     """
+    persister: Persister = field()
+    """Use to access backup tracking data."""
 
-    def __init__(self, config):
-        """Initialize
-
-        :param config: the application configuration
-        """
-        self.config = config
-
-    @property
-    def persister(self):
-        "The DB DAO."
-        return Persister(self.config)
-
-    def write_summary(self, date, writer=sys.stdout):
+    def write_summary(self, date, writer: TextIOBase = sys.stdout):
         """Write the summary of all activities for a day.
 
         :param date: the date of which to report the activities
-        :type date: datetime.datetime
+
         :param writer: the writer object, which default to sys.stdout
 
         """
@@ -34,11 +33,11 @@ class Reporter(object):
         for act in self.persister.get_activities_by_date(date):
             writer.write(f'{act}\n')
 
-    def write_detail(self, date, writer=sys.stdout):
+    def write_detail(self, date, writer: TextIOBase = sys.stdout):
         """Write the detailed attributes of all activities for a day.
 
         :param date: the date of which to report the activities
-        :type date: datetime.datetime
+
         :param writer: the writer object, which default to sys.stdout
 
         """
@@ -46,11 +45,11 @@ class Reporter(object):
         for act in self.persister.get_activities_by_date(date):
             act.write(writer)
 
-    def write_json(self, date, writer=sys.stdout):
+    def write_json(self, date, writer: TextIOBase = sys.stdout):
         """Write the JSON, which contains all the data of all activities for a day.
 
         :param date: the date of which to report the activities
-        :type date: datetime.datetime
+
         :param writer: the writer object, which default to sys.stdout
 
         """
