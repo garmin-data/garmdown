@@ -93,7 +93,7 @@ class Persister(object):
         :param activities the activities to add to the database
 
         """
-        logger.info(f'persisting activities')
+        logger.info('persisting activities')
         logger.debug(f'connection: {conn}')
         for act in activities:
             if self._activity_exists(conn, act):

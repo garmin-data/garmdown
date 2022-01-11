@@ -3,11 +3,11 @@ import logging
 import json
 import re
 import itertools as it
-import urllib.parse as up
 from robobrowser import RoboBrowser
 from zensols.persist import persisted
 from zensols.config import Settings
 from . import ActivityFactory
+from garminexport.garminclient import GarminClient
 
 logger = logging.getLogger(__name__)
 
@@ -41,93 +41,21 @@ class Fetcher(object):
     @persisted('_browser', cache_global=True)
     def browser(self):
         "The ``RoboBrowser`` instance."
-        import requests
-        start = requests.session()
-        start.headers = {'origin': 'https://sso.garmin.com'}
+        logger.debug('creating browser...')
         return RoboBrowser(
-            history=True, parser='lxml', user_agent=self.web.agent, session=start)
-
-    @property
-    @persisted('_hostname_url', cache_global=True)
-    def hostname_url(self):
-        "The API host name."
-        self.browser.open(self.web.gauth)
-        return json.loads(self.browser.parsed.html.body.p.text)['host']
-
-    # not sure why we need this (taken from Shannon's code)
-    @property
-    @persisted('_script_url', cache_global=True)
-    def script_url(self):
-        "Not used"
-        self.browser.open(self.web.base_url)
-        parsed = self.browser.parsed.decode()
-        pattern = r"'\S+sso\.garmin\.com\S+'"
-        return re.search(pattern, parsed).group()[1:-1]
-
-    @property
-    def login_request_data(self):
-        """Return the data needed to log in to the garmin connect site.
-
-        """
-        wconf = self.web
-        # Package the full login GET request...
-        data = {'service': wconf.redirect,
-                'webhost': self.hostname_url,
-                'source': wconf.base_url,
-                'redirectAfterAccountLoginUrl': wconf.redirect,
-                'redirectAfterAccountCreationUrl': wconf.redirect,
-                'gauthHost': wconf.sso,
-                'locale': 'en_US',
-                'id': 'gauth-widget',
-                'cssUrl': wconf.css,
-                'clientId': 'GarminConnect',
-                'rememberMeShown': 'true',
-                'rememberMeChecked': 'false',
-                'createAccountShown': 'true',
-                'openCreateAccount': 'false',
-                'usernameShown': 'false',
-                'displayNameShown': 'false',
-                'consumeServiceTicket': 'false',
-                'initialFocus': 'true',
-                'embedWidget': 'false',
-                'generateExtraServiceTicket': 'false'}
-        return data
-
-    def _get_last_login_state(self):
-        """Return ``success`` if the login connection was successful, ``failed`` if
-        failed or ``unknown`` if it returned a response we don't understand.
-
-        """
-        decoded = self.browser.parsed.decode()
-        if decoded.find('SUCCESS') > 0:
-            state = 'success'
-        elif decoded.find('Invalid') > 0:
-            state = 'failed'
-        else:
-            logger.warning(f'unknown login state: {decoded}')
-            state = 'unknown'
-        return state
+            history=True, parser='lxml',
+            user_agent=self.web.agent,
+            session=self.session)
 
     def _login(self):
         """Login in the garmin connect site with athlete credentials.
         """
-        #login = self.config.populate(section='login')
         login = self.login
-        url = self.web.login_url + up.urlencode(self.login_request_data)
-        logger.info('logging in...')
-        logger.debug(f'login url: {url}')
-        self.browser.open(url)
-        form = self.browser.get_form(self.web.login_form)
-        form['username'] = login.username
-        form['password'] = login.password
-        logger.debug(f'submitting form: {form}')
-        self.browser.submit_form(form)
-        state = self._get_last_login_state()
-        if state == 'failed':
-            raise ValueError('login failed')
-        elif state == 'unknown':
-            raise ValueError('login status unknown')
-        self._login_state = state
+        logger.info(f'logging in with {login.username}')
+        client = GarminClient(login.username, login.password)
+        client.connect()
+        self.session = client.session
+        self._login_state = 'success'
 
     def _assert_logged_in(self):
         """Log in if we're not and raise an error if we can't.

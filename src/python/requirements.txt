@@ -1,6 +1,7 @@
 zensols.util>=1.7.0
 Werkzeug==0.16.0
 robobrowser==0.5.3
+garminexport==0.4.0
 oauth2client>=4.1.3
 httplib2>=0.12.0
 google-api-python-client>=1.7.7
