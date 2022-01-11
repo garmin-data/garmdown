@@ -56,24 +56,26 @@ class DownloadApplication(object):
     backuper: Backuper = field()
     """Creates backups of the SQLite where activities are stored."""
 
-    limit: int = field(default=10)
-    """The activity limit."""
+    limit: int = field(default=None)
+    """The activity limit, which defaults config.
+
+    """
 
     def sync_activities(self):
         """Download outstanding activites."""
-        self.mng.sync_activities(self.limit)
+        self.manager.sync_activities(self.limit)
 
     def sync_tcx(self):
         """Download outstanding TCX files."""
-        self.mng.sync_tcx(self.limit)
+        self.manager.sync_tcx(self.limit)
 
     def import_tcx(self):
         """Import TCX file."""
-        self.mng.import_tcx()
+        self.manager.import_tcx()
 
     def clean_imported(self):
         """Remove all TCX files from the imported directory."""
-        self.mng.clean_imported()
+        self.manager.clean_imported()
 
 
 @dataclass

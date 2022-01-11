@@ -6,7 +6,8 @@ harness = ConfigurationImporterCliHarness(
     src_dir_name='src/python',
     app_factory_class='zensols.garmdown.ApplicationFactory',
     #config_path='test-resources/garmdown.conf',
-    proto_args='report --date 2021-01-05 --format detail',
+    proto_args='activity',
+    #proto_args='report --date 2021-01-05 --format detail',
     proto_factory_kwargs={'reload_pattern': r'^zensols.garmdown'},
 )
 harness.run()
