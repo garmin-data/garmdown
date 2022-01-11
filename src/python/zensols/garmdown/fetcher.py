@@ -1,3 +1,4 @@
+from dataclasses import dataclass, field
 import logging
 import json
 import re
@@ -5,30 +6,36 @@ import itertools as it
 import urllib.parse as up
 from robobrowser import RoboBrowser
 from zensols.persist import persisted
-from zensols.garmdown import ActivityFactory
+from zensols.config import Settings
+from . import ActivityFactory
 
 logger = logging.getLogger(__name__)
 
 
+@dataclass
 class Fetcher(object):
     """Downloads Garmin TXC files and activities (metadata).
 
     """
+    activity_factory: ActivityFactory
+    login: Settings
+    download: Settings
+    web: Settings
 
-    def __init__(self, config):
+    def __post_init__(self):
         """Initialize
 
         :param config: the application configuration
         """
-        self.config = config
-        self.web = self.config.web
-        self.fetch_params = self.config.fetch
-        self.login_state = 'loggedout'
+        #self.config = config
+        #self.web = self.config.web
+        #self.fetch_params = self.config.fetch
+        self._login_state = 'loggedout'
 
-    @property
-    @persisted('_activity_factory')
-    def activity_factory(self):
-        return ActivityFactory(self.config)
+    # @property
+    # @persisted('_activity_factory')
+    # def activity_factory(self):
+    #     return ActivityFactory(self.config)
 
     @property
     @persisted('_browser', cache_global=True)
@@ -104,7 +111,8 @@ class Fetcher(object):
     def _login(self):
         """Login in the garmin connect site with athlete credentials.
         """
-        login = self.config.populate(section='login')
+        #login = self.config.populate(section='login')
+        login = self.login
         url = self.web.login_url + up.urlencode(self.login_request_data)
         logger.info('logging in...')
         logger.debug(f'login url: {url}')
@@ -119,13 +127,13 @@ class Fetcher(object):
             raise ValueError('login failed')
         elif state == 'unknown':
             raise ValueError('login status unknown')
-        self.login_state = state
+        self._login_state = state
 
     def _assert_logged_in(self):
         """Log in if we're not and raise an error if we can't.
 
         """
-        if self.login_state != 'success':
+        if self._login_state != 'success':
             self._login()
 
         # the web site seems to need to have this URL touched, otherwise we get
@@ -139,7 +147,9 @@ class Fetcher(object):
         """Use robobrowser to download activities, parse JSON and return them.
 
         :param index: the 0 based activity index (not contiguous page based)
+
         :param chunk_size: how large the batch for each invocation
+
         """
         self._assert_logged_in()
         params = {'index': index,
@@ -156,6 +166,7 @@ class Fetcher(object):
         """Yield downloaded activities.
 
         :param index: the 0 based activity index (not contiguous page based)
+
         :param chunk_size: how large the batch for each invocation
 
         """
@@ -174,8 +185,8 @@ class Fetcher(object):
         :param start_index: the 0 based activity index (not contiguous page
             based)
         """
-        activity_chunk_size = self.fetch_params.activity_chunk_size
-        activity_num = self.fetch_params.activity_num
+        activity_chunk_size = self.download.activity_chunk_size
+        activity_num = self.download.activity_num
         if limit is None:
             limit = activity_chunk_size
         al = map(lambda x: self._iterate_activities(x, activity_chunk_size),

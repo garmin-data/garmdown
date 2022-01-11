@@ -1,26 +1,24 @@
+from dataclasses import dataclass
 import logging
 import sys
 from pathlib import Path
 import shutil
-from zensols.persist import (
-    PersistedWork,
-    persisted
-)
-from zensols.garmdown import (
-    Backuper,
-    Persister,
-    Fetcher,
-)
+from zensols.persist import PersistedWork, persisted
+from zensols.config import Configurable
+from zensols.garmdown import Backuper, Persister, Fetcher
 
 logger = logging.getLogger(__name__)
 
 
+@dataclass
 class Manager(object):
     """Manages downloading and database work.  This includes downloading data from
     the Garmin connect website and persisting status data in an SQLite
     database.
 
     """
+    #config: Configurable
+
     def __init__(self, config):
         """Initialize
 

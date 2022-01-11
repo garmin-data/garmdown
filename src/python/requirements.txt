@@ -1,4 +1,4 @@
-zensols.util>=1.2.5
+zensols.util>=1.7.0
 Werkzeug==0.16.0
 robobrowser==0.5.3
 oauth2client>=4.1.3

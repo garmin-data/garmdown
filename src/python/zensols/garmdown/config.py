@@ -8,7 +8,6 @@ class AppConfig(ExtendedInterpolationConfig):
     """Application context simplifies some of the configuration.
 
     """
-
     @property
     def fetch_config(self):
         if not hasattr(self, '_fetch_conf'):

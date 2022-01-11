@@ -1,6 +1,14 @@
+from typing import Dict
+from dataclasses import dataclass
 import sys
 import itertools as it
 from datetime import datetime
+from zensols.util import APIError
+
+
+class GarmdownError(APIError):
+    """Application API error."""
+    pass
 
 
 class Activity(object):
@@ -190,12 +198,18 @@ ground_contact_time_average steps
         return self.raw['steps']
 
 
+@dataclass
 class ActivityFactory(object):
-    def __init__(self, config):
-        self.type_to_char = config.fetch_config.get_options(
-            section='activity_type')
-        self.char_to_name = config.fetch_config.get_options(
-            section='activity_name')
+    type_to_char: Dict[str, str]
+    char_to_name: Dict[str, str]
+
+    def __post_init__(self):
+        # self.type_to_char = config.fetch_config.get_options(
+        #     section='activity_type')
+        # self.char_to_name = config.fetch_config.get_options(
+        #     section='activity_name')
+        self.type_to_char = self.type_to_char.asdict()
+        self.char_to_name = self.char_to_name.asdict()
         self.char_to_type = {v: k for k, v in self.type_to_char.items()}
 
     def create(self, raw):
