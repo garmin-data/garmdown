@@ -21,7 +21,7 @@ class Backuper(object):
     persister: Persister = field()
     """Use to access backup tracking data."""
 
-    db_backup_dir: Path = field()
+    backup_dir: Path = field()
     """The directory to make SQLite file backups of the database."""
 
     days: int = field()
@@ -30,11 +30,12 @@ class Backuper(object):
     def _execute(self):
         """Execute the backup of the SQLite database."""
         persister = self.persister
-        self.backup_dir.mkdir(parents=True, exists_ok=True)
+        self.backup_dir.mkdir(parents=True, exist_ok=True)
         src = persister.db_file
         dst = self.backup_dir / f'{src.name}-{Backup.timestr_from_datetime()}'
         backup = Backup(dst)
-        logger.info(f'backing up database {src} -> {dst}')
+        if logger.isEnabledFor(logging.INFO):
+            logger.info(f'backing up database {src} -> {dst}')
         su.copy(src, dst)
         persister.insert_backup(backup)
 

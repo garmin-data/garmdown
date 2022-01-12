@@ -116,7 +116,7 @@ class BackupApplication(object):
     """Creates backups of the SQLite where activities are stored."""
 
     def backup(self):
-        self.backer.backup(True)
+        self.backuper.backup(True)
 
 
 @dataclass
