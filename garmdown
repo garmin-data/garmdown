@@ -8,7 +8,8 @@ harness = ConfigurationImporterCliHarness(
     #config_path='test-resources/garmdown.conf',
     #proto_args='activity',
     #proto_args='report --date 2021-01-05 --format detail',
-    proto_args='sheet',
+    #proto_args='sheet',
+    proto_args='sync',
     proto_factory_kwargs={'reload_pattern': r'^zensols.garmdown'},
 )
 harness.run()

@@ -27,6 +27,7 @@ class InfoApplication(object):
                                        'write_not_imported': 'notimport'}}
 
     manager: Manager = field()
+    """Manages downloading and database work."""
 
     def write_not_downloaded(self):
         """Print activities not downloaded."""
@@ -127,7 +128,35 @@ class SheetApplication(object):
                 'mnemonic_overrides': {'sync': 'sheet'}}
 
     sheet_updater: SheetUpdater = field()
+    """Updates a Google Sheets spreadsheet with activity data from the activity
+    database.
+
+    """
 
     def sync(self):
         """Update Google Docs training spreadsheet."""
+        self.sheet_updater.sync()
+
+
+@dataclass
+class SyncApplication(object):
+    """Download Garmin activities and sync with Google sheets.
+
+    """
+    CLI_META = {'option_excludes': set('manager sheet_updater'.split())}
+
+    manager: Manager = field()
+    """Manages downloading and database work."""
+
+    backuper: Backuper = field()
+    """Creates backups of the SQLite where activities are stored."""
+
+    sheet_updater: SheetUpdater = field()
+    """Updates a Google Sheets spreadsheet with activity data from the activity
+    database.
+
+    """
+    def sync(self):
+        self.manager.sync()
+        self.backuper.backup()
         self.sheet_updater.sync()
