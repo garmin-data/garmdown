@@ -1,3 +1,10 @@
+"""Updates a Google Sheets activity data.
+
+"""
+__author__ = 'Paul Landes'
+
+from typing import Iterable
+from dataclasses import dataclass, field
 import logging
 from pathlib import Path
 from datetime import datetime
@@ -6,7 +13,8 @@ import httplib2 as hl
 from oauth2client import file, client, tools
 import googleapiclient.discovery as gd
 from zensols.persist import persisted
-from zensols.garmdown import Persister
+from zensols.config import Settings
+from . import Persister, ActivityFactory
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +77,7 @@ class CompletedEntry(object):
         return self.__str__()
 
 
+@dataclass
 class SheetUpdater(object):
     """Updates a Google Sheets spreadsheet with activity data from the activity
     database.
@@ -76,21 +85,54 @@ class SheetUpdater(object):
     """
     SECTION = 'google_sheets'
 
-    def __init__(self, config):
-        """Initialize.
+    activity_factory: ActivityFactory = field()
+    """Create activity instances."""
 
-        :param config: the application configuration
-        """
-        self.config = config
-        config.populate(self, section=self.SECTION)
-        self.params = config.sheet
-        self.act_char_to_col_type = config.fetch_config.get_options(
-            section='activity_sheet')
+    service_params: Settings = field()
+    """Parameters needed by the Google service client."""
 
-    @property
-    def persister(self):
-        "The DB DAO."
-        return Persister(self.config)
+    act_char_to_col_type: Settings = field()
+    """Canonical activity type to name to nice human readable; this is used to
+    populate swim/bike/run columns in the spreadsheet.
+
+    """
+
+    persister: Persister = field()
+    """Use to access backup tracking data."""
+
+    cred_file: Path = field()
+    """Google sheets API key.
+
+    :see: `Client API <https://developers.google.com/api-client-library/python/start/get_started>_`
+
+    """
+
+    token_file: Path = field()
+    """Cache token data on the file system (created on first run)."""
+
+    sheet_id: str = field()
+    """Long ID found in the URL when browsing to the spreadsheet in google docs.
+
+    """
+
+    maxdays: str = field()
+    """Number of rows we can for empty entries"""
+
+    row_offset: str = field()
+    """First row in the sheet."""
+
+    date_cell_range: str = field()
+    """Date column (needs to be in mm/dd/yyyy format).  The cell range where the
+    data is in the format <sheet name (bottom left tab)>!<column letter><row
+    number>.
+
+    """
+
+    completed_cell_range_format: str = field()
+    """Completed data cell range (same as date_cell_range)."""
+
+    def __post_init__(self):
+        self.act_char_to_col_type = self.act_char_to_col_type.asdict()
 
     @property
     @persisted('_service', cache_global=True)
@@ -98,19 +140,20 @@ class SheetUpdater(object):
         """The Google Sheets API wrapper service.
 
         """
-        cred_path = Path(self.google_cred_file).expanduser()
-        token_path = Path(self.token_file).expanduser()
-        logger.info(f'getting last update with {cred_path} ' +
-                    f'with file {token_path}')
-        store = file.Storage(token_path)
+        logger.info(f'getting last update with {self.cred_file} ' +
+                    f'with file {self.token_file}')
+        store = file.Storage(self.token_file)
         creds = store.get()
         if not creds or creds.invalid:
-            flow = client.flow_from_clientsecrets(cred_path, self.params.scope)
+            flow = client.flow_from_clientsecrets(
+                self.cred_file, self.service_params.scope)
             creds = tools.run_flow(flow, store)
-        logger.info(f'logging in to Google sheets API')
-        return gd.build(self.params.api, self.params.version,
-                        http=creds.authorize(hl.Http()),
-                        cache_discovery=False)
+        logger.info('logging in to Google sheets API')
+        return gd.build(
+            self.service_params.api,
+            self.service_params.version,
+            http=creds.authorize(hl.Http()),
+            cache_discovery=False)
 
     @property
     def sheet(self):
@@ -149,7 +192,7 @@ class SheetUpdater(object):
             body=body).execute()
 
     @persisted('_completed_entries')
-    def _get_completed_entries(self):
+    def _get_completed_entries(self) -> Iterable[CompletedEntry]:
         "Return completed training entries from the spreadsheet."
         logger.info('getting existing completed workout data')
         dates = self._get_data(self.date_cell_range)
@@ -184,7 +227,7 @@ class SheetUpdater(object):
         return filter(lambda x: x.idx > last_idx and x.date < end_date,
                       entries)
 
-    def _sync_entries_with_db(self, entries, clobber=False):
+    def _sync_entries_with_db(self, entries, clobber: bool = False):
         """Populate database data in to ``entries``.
 
         :param entries: the workout entries to populate
@@ -218,6 +261,8 @@ class SheetUpdater(object):
         self._set_data(rows, range)
 
     def sync(self):
+        """Download outstanding activities and add them to the 
+        """
         entries = tuple(self._get_update_range_entries())
         if len(entries) > 0:
             self._sync_entries_with_db(entries)

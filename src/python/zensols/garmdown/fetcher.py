@@ -23,8 +23,11 @@ class Fetcher(object):
     activity_factory: ActivityFactory = field()
     """Create activity instances."""
 
-    login: Settings
-    download: Settings
+    login: Settings = field()
+    """The login creds for Garmin Connect."""
+
+    download: Settings = field()
+    """The download settings configuration."""
 
     @property
     @persisted('_client', cache_global=True)

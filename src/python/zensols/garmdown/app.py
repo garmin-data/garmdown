@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 import logging
 from datetime import datetime
-from . import Manager, Backuper, Reporter
+from . import Manager, Backuper, Reporter, SheetUpdater
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +35,32 @@ class InfoApplication(object):
     def write_not_imported(self):
         """Print activities not imported."""
         self.mng.write_not_imported(self.detail, self.limit)
+
+
+@dataclass
+class ReporterApplication(object):
+    """Report activities of a day.
+
+    """
+    CLI_META = {'option_excludes': set('reporter'.split())}
+
+    reporter: Reporter = field()
+    """Report activities of a day."""
+
+    format: ReportType = field(default='summary')
+    """The format to output."""
+
+    date: str = field(default=None)
+    """The date to report on, which defaults to today (%Y-%m-%d)."""
+
+    def report(self):
+        """Report activities for a day."""
+        if self.date is None:
+            date = datetime.now()
+        else:
+            date = datetime.strptime(self.date, '%Y-%m-%d')
+        fmt = self.format.name
+        getattr(self.reporter, f'write_{fmt}')(date)
 
 
 @dataclass
@@ -93,26 +119,15 @@ class BackupApplication(object):
 
 
 @dataclass
-class ReporterApplication(object):
-    """Report activities of a day.
+class SheetApplication(object):
+    """Updates a Google Sheets activity data.
 
     """
-    CLI_META = {'option_excludes': set('reporter'.split())}
+    CLI_META = {'option_excludes': set('sheet_updater'.split()),
+                'mnemonic_overrides': {'sync': 'sheet'}}
 
-    reporter: Reporter = field()
-    """Report activities of a day."""
+    sheet_updater: SheetUpdater = field()
 
-    format: ReportType = field(default='summary')
-    """The format to output."""
-
-    date: str = field(default=None)
-    """The date to report on, which defaults to today (%Y-%m-%d)."""
-
-    def report(self):
-        """Report activities for a day."""
-        if self.date is None:
-            date = datetime.now()
-        else:
-            date = datetime.strptime(self.date, '%Y-%m-%d')
-        fmt = self.format.name
-        getattr(self.reporter, f'write_{fmt}')(date)
+    def sync(self):
+        """Update Google Docs training spreadsheet."""
+        self.sheet_updater.sync()
