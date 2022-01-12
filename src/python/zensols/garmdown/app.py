@@ -23,27 +23,46 @@ class InfoApplication(object):
     """Provide information about what has (not) been downloaded.
 
     """
-    CLI_META = {'mnemonic_overrides': {'write_not_downloaded': 'notdown',
+    CLI_META = {'option_excludes': {'manager'},
+                'mnemonic_overrides': {'write_not_downloaded': 'notdown',
                                        'write_not_imported': 'notimport'}}
 
     manager: Manager = field()
     """Manages downloading and database work."""
 
+    detail: bool = field(default=False)
+    """Whether or not to include detail."""
+
+    limit: int = field(default=None)
+    """The activity limit, which defaults config.
+
+    """
     def write_not_downloaded(self):
         """Print activities not downloaded."""
-        self.mng.write_not_downloaded(self.detail, self.limit)
+        self.manager.write_not_downloaded(self.detail, self.limit)
 
     def write_not_imported(self):
         """Print activities not imported."""
-        self.mng.write_not_imported(self.detail, self.limit)
+        self.manager.write_not_imported(self.detail, self.limit)
 
 
 @dataclass
-class ReporterApplication(object):
+class DateBasedApplication(object):
+    def _get_date(self) -> datetime:
+        if self.date is None:
+            date = datetime.now()
+        else:
+            date = datetime.strptime(self.date, '%Y-%m-%d')
+        return date
+
+
+@dataclass
+class ReporterApplication(DateBasedApplication):
     """Report activities of a day.
 
     """
     CLI_META = {'option_excludes': set('reporter'.split())}
+    #CLASS_INSPECTOR = {}
 
     reporter: Reporter = field()
     """Report activities of a day."""
@@ -52,20 +71,17 @@ class ReporterApplication(object):
     """The format to output."""
 
     date: str = field(default=None)
-    """The date to report on, which defaults to today (%Y-%m-%d)."""
+    """The date to report on, which defaults to today (yyyy-mm-dd)."""
 
     def report(self):
         """Report activities for a day."""
-        if self.date is None:
-            date = datetime.now()
-        else:
-            date = datetime.strptime(self.date, '%Y-%m-%d')
+        date = self._get_date()
         fmt = self.format.name
         getattr(self.reporter, f'write_{fmt}')(date)
 
 
 @dataclass
-class DownloadApplication(object):
+class DownloadApplication(DateBasedApplication):
     """Download Garmin connect data application.
 
     """
@@ -74,6 +90,7 @@ class DownloadApplication(object):
                 {'sync_activities': 'activity',
                  'sync_tcx': 'tcx',
                  'import_tcx': 'import',
+                 'import_tcx_from_date': 'importafter',
                  'clean_imported': {'name': 'clean',
                                     'option_includes': set()}}}
 
@@ -87,7 +104,6 @@ class DownloadApplication(object):
     """The activity limit, which defaults config.
 
     """
-
     def sync_activities(self):
         """Download outstanding activites."""
         self.manager.sync_activities(self.limit)
@@ -103,6 +119,17 @@ class DownloadApplication(object):
     def clean_imported(self):
         """Remove all TCX files from the imported directory."""
         self.manager.clean_imported()
+
+    def import_tcx_from_date(self, date: str):
+        """Import TCX files from the database starting on or after a date.
+
+        :param date: the date to report on, which defaults to today
+                     (yyyy-mm-dd)
+
+        """
+        self.date = date
+        date: datetime = self._get_date()
+        self.manager.import_tcx_from_date(date)
 
 
 @dataclass

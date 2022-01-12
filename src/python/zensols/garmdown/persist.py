@@ -210,7 +210,14 @@ class Persister(object):
             return backups[0]
 
     @connection()
-    def get_activities_by_date(self, conn, datetime) -> Tuple[Activity]:
-        datestr = datetime.strftime('%Y-%m-%d')
+    def get_activities_by_date(self, conn, date: datetime) -> Tuple[Activity]:
+        datestr = date.strftime('%Y-%m-%d')
         return tuple(self._thaw_activity(
             conn, self.sql.activity_by_date, datestr))
+
+    @connection()
+    def get_activities_on_after_date(self, conn, date: datetime) -> \
+            Tuple[Activity]:
+        datestr = date.strftime('%Y-%m-%d')
+        return tuple(self._thaw_activity(
+            conn, self.sql.activity_on_after_date, datestr))

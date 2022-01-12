@@ -71,9 +71,9 @@ class Fetcher(object):
                  range(start_index, activity_num, activity_chunk_size))
         return it.islice(it.chain(*al), limit)
 
-    def download_tcx(self, activity: int, writer: TextIOBase):
+    def download_tcx(self, activity_id: int, writer: TextIOBase):
         """Download the TCX file for ``activity`` and dump the contents to ``writer``.
 
         """
-        content: str = self.client.get_activity_tcx(activity)
+        content: str = self.client.get_activity_tcx(activity_id)
         writer.write(content)

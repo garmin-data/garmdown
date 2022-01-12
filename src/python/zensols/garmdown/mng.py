@@ -8,6 +8,7 @@ import logging
 import sys
 from io import TextIOBase
 from pathlib import Path
+from datetime import datetime
 import shutil
 from zensols.garmdown import Activity, Backuper, Persister, Fetcher
 
@@ -36,6 +37,12 @@ class Manager(object):
     import_dir: Path = field()
     """Where to copy to-be-imported files."""
 
+    download_min_size: int = field()
+    """Minimize size in bytes of a TCX file that would otherwise raise an
+    exception.
+
+    """
+
     def sync_activities(self, limit: int = None, start_index: int = 0):
         """Download and add activities to the SQLite database.  Note that this does not
         download the TCX files.
@@ -55,6 +62,23 @@ class Manager(object):
         """Format a (non-directory) file name for ``activity``."""
         return f'{activity.start_date_str}_{activity.id}.tcx'
 
+    def _write_activity(self, act: Activity):
+        dl_dir = self.activities_dir
+        dl_path = Path(dl_dir, self._tcx_filename(act))
+        if dl_path.exists():
+            logger.warning(f'activity {act.id} is downloaded ' +
+                           'but not marked--marking now')
+        else:
+            logger.debug(f'downloading {dl_path}')
+            with open(dl_path, 'w') as f:
+                self.fetcher.download_tcx(act.id, f)
+            sr = dl_path.stat()
+            logger.debug(f'{dl_path} has size {sr.st_size}')
+            if sr.st_size < self.download_min_size:
+                m = f'downloaded file {dl_path} has size ' + \
+                    f'{sr.st_size} < {self.download_min_size}'
+                raise ValueError(m)
+
     def sync_tcx(self, limit: int = None):
         """Download TCX files and record each succesful download as such in the
         database.
@@ -63,28 +87,12 @@ class Manager(object):
                       defaults to all
 
         """
-        dl_dir = self.activities_dir
         persister = self.persister
-        if not dl_dir.exists():
-            logger.info(f'creating download directory {dl_dir}')
-            dl_dir.mkdir(parents=True)
         acts = persister.get_missing_downloaded(limit)
         logger.info(f'downloading {len(acts)} tcx files')
+        act: Activity
         for act in acts:
-            dl_path = Path(dl_dir, self._tcx_filename(act))
-            if dl_path.exists():
-                logger.warning(f'activity {act.id} is downloaded ' +
-                               'but not marked--marking now')
-            else:
-                logger.debug(f'downloading {dl_path}')
-                with open(dl_path, 'wb') as f:
-                    self.fetcher.download_tcx(act, f)
-                sr = dl_path.stat()
-                logger.debug(f'{dl_path} has size {sr.st_size}')
-                if sr.st_size < self.download.min_size:
-                    m = f'downloaded file {dl_path} has size ' + \
-                        f'{sr.st_size} < {self.download.min_size}'
-                    raise ValueError(m)
+            self._write_activity(act)
             persister.mark_downloaded(act)
 
     def import_tcx(self, limit: int = None):
@@ -103,6 +111,7 @@ class Manager(object):
             import_dir.mkdir(parents=True)
         acts = persister.get_missing_imported(limit)
         logger.info(f'importing {len(acts)} activities')
+        act: Activity
         for act in acts:
             fname = self._tcx_filename(act)
             dl_path = Path(dl_dir, fname)
@@ -114,6 +123,18 @@ class Manager(object):
                 logger.info(f'copying {dl_path} -> {import_path}')
                 shutil.copy(dl_path, import_path)
             persister.mark_imported(act)
+
+    def import_tcx_from_date(self, date: datetime):
+        """Import TCX files from the database starting on or after ``date``.
+
+        :param date: the date to match entries in the database
+
+        """
+        logger.info(f'importing files on or after {date}')
+        act: Activity
+        for act in self.persister.get_activities_on_after_date(date):
+            self._write_activity(act)
+            return
 
     def sync(self, limit=None):
         """Sync activitives and TCX files.

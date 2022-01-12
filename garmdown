@@ -9,6 +9,8 @@ harness = ConfigurationImporterCliHarness(
     #proto_args='activity',
     #proto_args='report --date 2021-01-05 --format detail',
     #proto_args='sheet',
+    #proto_args='importafter 2021-12-01',
+    #proto_args='notdown',
     proto_args='sync',
     proto_factory_kwargs={'reload_pattern': r'^zensols.garmdown'},
 )
