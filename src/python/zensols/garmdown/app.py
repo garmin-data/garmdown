@@ -62,7 +62,6 @@ class ReporterApplication(DateBasedApplication):
 
     """
     CLI_META = {'option_excludes': set('reporter'.split())}
-    #CLASS_INSPECTOR = {}
 
     reporter: Reporter = field()
     """Report activities of a day."""
@@ -120,7 +119,7 @@ class DownloadApplication(DateBasedApplication):
         """Remove all TCX files from the imported directory."""
         self.manager.clean_imported()
 
-    def import_tcx_from_date(self, date: str):
+    def _import_tcx_from_date(self, date: str):
         """Import TCX files from the database starting on or after a date.
 
         :param date: the date to report on, which defaults to today

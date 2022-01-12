@@ -134,7 +134,6 @@ class Manager(object):
         act: Activity
         for act in self.persister.get_activities_on_after_date(date):
             self._write_activity(act)
-            return
 
     def sync(self, limit=None):
         """Sync activitives and TCX files.
