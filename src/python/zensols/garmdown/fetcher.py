@@ -29,6 +29,17 @@ class Fetcher(object):
     download: Settings = field()
     """The download settings configuration."""
 
+    retry_delay: int = field(default=1)
+    """Initially, number of seconds to wait before retrying to contact Garmin
+    Connect.  For each timeout, the number of seconds on each retry (see
+    :obj:`retries`) grows exponentially.
+
+    """
+
+    max_retries: int = field(default=6)
+    """The max number of retries when accessing Garmin Connect before failing.
+
+    """
     @property
     @persisted('_client', cache_global=True)
     def client(self) -> GarminClient:
@@ -37,7 +48,9 @@ class Fetcher(object):
         login = self.login
         if logger.isEnabledFor(logging.INFO):
             logger.info(f'logging in with {login.username}')
-        client = GarminClient(login.username, login.password)
+        client = GarminClient(login.username, login.password,
+                              retry_delay=self.retry_delay,
+                              max_retries=self.max_retries)
         client.connect()
         return client
 
