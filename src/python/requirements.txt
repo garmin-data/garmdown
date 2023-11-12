@@ -1,5 +1,5 @@
 zensols.util>=1.7.1
-Werkzeug==0.16.0
+Werkzeug==2.2.3
 robobrowser==0.5.3
 garminexport==0.4.0
 oauth2client>=4.1.3
